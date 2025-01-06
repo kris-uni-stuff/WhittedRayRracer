@@ -1,0 +1,26 @@
+﻿  SoftwareRayTracer.cpp
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\bmp.h(15,87): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\bmp.h(16,87): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\bmp.h(17,87): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(126,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(182,26): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(205,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'unsigned __int64'
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(205,9): message : consider using '%zd' in the format string
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(257,36): warning C4267: 'argument': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=unsigned int
+          ]
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(295,26): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(297,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'unsigned __int64'
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(297,9): message : consider using '%zd' in the format string
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\BVH.h(295,21): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\BVH.h(323,26): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\SoftwareRayTracer.cpp(263,11): warning C4101: 'alpha': unreferenced local variable
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\SoftwareRayTracer.cpp(263,18): warning C4101: 'beta': unreferenced local variable
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\SoftwareRayTracer.cpp(263,24): warning C4101: 'gamma': unreferenced local variable
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\SoftwareRayTracer.cpp(418,19): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\SoftwareRayTracer.cpp(679,19): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\bmp.h(64): warning C4715: 'savebitmap': not all control paths return a value
+C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\SoftwareRayTracer\obj.h(299): warning C4715: 'obj_parse': not all control paths return a value
+  SoftwareRayTracer.vcxproj -> C:\Users\pszks\Desktop\RAY TRACER\SoftwareRayTracer\x64\Debug\SoftwareRayTracer.exe
