@@ -46,7 +46,7 @@ const float atten = 1.f;
 
 int max_recursion_depth = 1;
 
-const int use_bvh = 0;
+const int use_bvh = 1;
 
 closest_hit CalculateColour = CalculateColourWhitted;
 
@@ -57,7 +57,7 @@ std::vector<triangle> tris;
 BVH_node g_BVH;
 float pixelBuffer[PIXEL_W * PIXEL_H * 3];
 
-glm::vec3 eye = glm::vec3(0.f, .1f, .2f);
+glm::vec3 eye = glm::vec3(0.f, .1f, 1.2f);
 float l = -1.f;
 float r = 1.f;
 float t = 1.f;
@@ -739,7 +739,7 @@ int main()
 
     tris = AssemblePrimitives(verts, n_verts);
 
- //   AppendTriangles(&tris, objs);
+    AppendTriangles(&tris, objs);
 
     LARGE_INTEGER Construct_StartingTime, Construct_EndingTime;
     QueryPerformanceCounter(&Construct_StartingTime);

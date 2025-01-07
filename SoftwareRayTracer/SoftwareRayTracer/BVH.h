@@ -1,5 +1,7 @@
 #pragma once
 
+int num_triangles_added = 0;
+
 class AABB
 {
 public:
@@ -15,7 +17,7 @@ public:
     vector<triangle*>   tris;
 };
 
-typedef std::map<float, triangle*> TTriangleMap;
+typedef std::multimap<float, triangle*> TTriangleMap;
 
 float GetLeftMostVertex(triangle t)
 {
@@ -267,6 +269,7 @@ void ConstructBVH(BVH_node* BVH, TTriangleMap triangles, int bvh_w)
             triangle* new_tri = new triangle();
             *new_tri = *it.second;
             BVH->tris.push_back(new_tri);
+            num_triangles_added++;
         }
 
         return;
@@ -288,11 +291,13 @@ void ConstructBVH(BVH_node* BVH, TTriangleMap triangles, int bvh_w)
         glm::vec3 cen = GetCentroid(it.second);
         glm::vec3 v = extreme - cen;
         float l = glm::length(v);
-        sorted_triangles[l] = it.second;
+        sorted_triangles.insert({ l, it.second });
     }
 
     //internal node containing child nodes
     int split_point = ceil((float)sorted_triangles.size() / (float)bvh_w);
+    //printf("split point %d\n", split_point);
+
     auto it = sorted_triangles.begin();
     for (int sp = 0; sp < bvh_w; sp++)
     {
@@ -301,15 +306,19 @@ void ConstructBVH(BVH_node* BVH, TTriangleMap triangles, int bvh_w)
         {
             if (it == sorted_triangles.end())
                 break;
-            split[it->first] = (it->second);
+            split.insert({ it->first, it->second });
             it++;
         }
+
+        //debug
+        //printf("triangles in node %d, triangles in split %d, width limit %d\n", split.size(), split_point, bvh_w);
 
         BVH_node* child = new BVH_node();
         ConstructBVH(child, split, bvh_w);
         BVH->child_bvhs.push_back(child);
     }
     
+   // printf("created node\n\n");
 }
 
 void ConstructBVH(BVH_node* BVH, std::vector<triangle> tris, int bvh_w)
@@ -320,8 +329,10 @@ void ConstructBVH(BVH_node* BVH, std::vector<triangle> tris, int bvh_w)
     TTriangleMap sorted_triangles;
     for (int t = 0; t < tris.size(); t++)
     {
-        sorted_triangles[t] = &tris[t];
+        sorted_triangles.insert({ t, &tris[t] });
     }
 
     ConstructBVH(BVH, sorted_triangles, bvh_w);
+
+    printf("%d triangles added to BVH\n", num_triangles_added);
 }
