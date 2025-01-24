@@ -53,6 +53,7 @@ class triangle
 public:
     vertex v1, v2, v3;
     bool reflect;
+    int primID;
     /*
     triangle() {}
     triangle(const triangle& t)

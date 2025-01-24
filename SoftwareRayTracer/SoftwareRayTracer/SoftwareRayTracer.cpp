@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 //#include <SDL.h>
 #include <Windows.h>
@@ -12,7 +13,7 @@
 #include "verts.h"
 #include "BVH.h"
 
-#define PIXEL_W 1200
+#define PIXEL_W 800
 #define PIXEL_H 800
 
 //SDL_Event event;
@@ -57,7 +58,7 @@ std::vector<triangle> tris;
 BVH_node g_BVH;
 float pixelBuffer[PIXEL_W * PIXEL_H * 3];
 
-glm::vec3 eye = glm::vec3(0.f, .1f, 1.2f);
+glm::vec3 eye = glm::vec3(0.f, .05f, .05f);
 float l = -1.f;
 float r = 1.f;
 float t = 1.f;
@@ -65,7 +66,7 @@ float b = -1.f;
 float n = 1.f;
 float f = 10.f;
 
-glm::vec3 light_pos(1.f, 2.f, 1.f);
+glm::vec3 light_pos(-.1f, .5f, 1.f);
 
 
 void AppendTriangles(std::vector<triangle>* io, vector<Object> in_objs)
@@ -295,6 +296,16 @@ glm::vec3 CalculateColourWhitted(triangle *tri, int depth, glm::vec3 p, glm::vec
     glm::vec3 refl_col(0.f);
     float t = -1;
 
+    if (tri->primID == 0 || tri->primID == 1)
+        tri->v1.col = vec3(1, 0, 0);
+    if (tri->primID == 8 || tri->primID == 9)
+        tri->v1.col = vec3(0, 1, 0);
+    if (tri->primID == 6 || tri->primID == 7)
+        tri->v1.col = vec3(0, 0, 1);
+
+    if (tri->primID == 8 || tri->primID == 9)
+        tri->reflect = true;
+
     glm::vec3 amb(0.f), diff(0.f);
 
     amb = .1f * tri->v1.col;
@@ -432,9 +443,19 @@ void RayTraceTriangles()
 
 //            if (t > 0 && t < f)
             {
-                float pixel_r = col.x > 1 ? 255 : col.x * 255;
-                float pixel_g = col.y > 1 ? 255 : col.y * 255;
-                float pixel_b = col.z > 1 ? 255 : col.z * 255;
+                auto r = linear_to_gamma(col.x);
+                auto g = linear_to_gamma(col.y);
+                auto b = linear_to_gamma(col.z);
+
+
+                float rc = std::clamp(r, .0f, 1.f);
+                float gc = std::clamp(g, .0f, 1.f);
+                float bc = std::clamp(b, .0f, 1.f);
+
+                float pixel_r = rc * 255.f;
+                float pixel_g = gc * 255.f;
+                float pixel_b = bc * 255.f;
+
 
                 pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 0] = pixel_r;
                 pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 1] = pixel_g;
@@ -692,9 +713,18 @@ void RayTraceBVH()
 
 //            if (tri != NULL)
             {
-                float pixel_r = col.x > 1 ? 255 : col.x * 255;
-                float pixel_g = col.y > 1 ? 255 : col.y * 255;
-                float pixel_b = col.z > 1 ? 255 : col.z * 255;
+                auto r = linear_to_gamma(col.x);
+                auto g = linear_to_gamma(col.y);
+                auto b = linear_to_gamma(col.z);
+
+
+                float rc = std::clamp(r, .0f, 1.f);
+                float gc = std::clamp(g, .0f, 1.f);
+                float bc = std::clamp(b, .0f, 1.f);
+
+                float pixel_r = rc * 255.f;
+                float pixel_g = gc * 255.f;
+                float pixel_b = bc * 255.f;
 
                 //SDL_SetRenderDrawColor(renderer, pixel_r, pixel_g, pixel_b, 255);
                 //SDL_RenderDrawPoint(renderer, pixel_x, pixel_y);
@@ -731,13 +761,13 @@ int main()
 //    const std::string MODEL_PATH = "objs/white_oak/white_oak.obj";
 //    const std::string MODEL_PATH = "objs/bird/textured_quad.obj";
  //   const std::string MODEL_PATH = "objs/room/viking_room.obj";
-        const std::string MODEL_PATH = "objs/ACCobra/Shelby.obj";
+//        const std::string MODEL_PATH = "objs/ACCobra/Shelby.obj";
 //    const std::string MODEL_PATH = "objs/sphere/sphere.obj";
-//    const std::string MODEL_PATH = "objs/pokeball/pokeball.obj";
+    const std::string MODEL_PATH = "objs/cornell2/cornell-box.obj";
 
     obj_parse(MODEL_PATH.c_str(), &objs, .1f);
 
-    tris = AssemblePrimitives(verts, n_verts);
+ //   tris = AssemblePrimitives(verts, n_verts);
 
     AppendTriangles(&tris, objs);
 

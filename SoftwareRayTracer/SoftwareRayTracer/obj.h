@@ -267,7 +267,8 @@ int obj_parse(const char* filename, vector<Object>* objs, float scale)
 		tri.v2 = vertices[indices[(i * 3) + 1]];
 		tri.v3 = vertices[indices[(i * 3) + 2]];
 
-		tri.reflect = true;
+		tri.reflect = false;
+		tri.primID = i;
 
 		bool randomise_colour = false;
 		if (randomise_colour)

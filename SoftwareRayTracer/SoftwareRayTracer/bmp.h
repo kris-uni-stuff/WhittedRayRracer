@@ -4,6 +4,16 @@
 #include <windows.h>
 #include <wingdi.h>
 
+float linear_to_gamma(float linear_component)
+{
+	if (linear_component > 0)
+	{
+		return std::sqrt(linear_component);
+	}
+
+	return 0;
+}
+
 int savebitmap(const char* filename, float* pixelBuffer, int w, int h)
 {
 	char* charBuffer = (char*)malloc(sizeof(unsigned char) * w * h * 3);
