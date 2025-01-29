@@ -58,7 +58,7 @@ std::vector<triangle> tris;
 BVH_node g_BVH;
 float pixelBuffer[PIXEL_W * PIXEL_H * 3];
 
-glm::vec3 eye = glm::vec3(0.f, .05f, .05f);
+glm::vec3 eye = glm::vec3(0.f, 2.5f, 3.0f);
 float l = -1.f;
 float r = 1.f;
 float t = 1.f;
@@ -66,7 +66,7 @@ float b = -1.f;
 float n = 1.f;
 float f = 10.f;
 
-glm::vec3 light_pos(-.1f, .5f, 1.f);
+glm::vec3 light_pos(4.f, 6.f, 4.f);
 
 
 void AppendTriangles(std::vector<triangle>* io, vector<Object> in_objs)
@@ -296,15 +296,16 @@ glm::vec3 CalculateColourWhitted(triangle *tri, int depth, glm::vec3 p, glm::vec
     glm::vec3 refl_col(0.f);
     float t = -1;
 
-    if (tri->primID == 0 || tri->primID == 1)
+    if (tri->primID == 6 || tri->primID == 7)
         tri->v1.col = vec3(1, 0, 0);
     if (tri->primID == 8 || tri->primID == 9)
         tri->v1.col = vec3(0, 1, 0);
-    if (tri->primID == 6 || tri->primID == 7)
+    if (tri->primID == 10 || tri->primID == 11)
         tri->v1.col = vec3(0, 0, 1);
 
     if (tri->primID == 8 || tri->primID == 9)
         tri->reflect = true;
+
 
     glm::vec3 amb(0.f), diff(0.f);
 
@@ -700,6 +701,11 @@ void RayTraceBVH()
         int perci = percf * 100;
         std::clog << "\rScanlines done: " << perci << "%" << ' ' << std::flush;
 
+        if (pixel_y == 47)
+        {
+            int t = 0;
+        }
+
         for (int pixel_x = 0; pixel_x < PIXEL_W; ++pixel_x)
         {
             glm::vec3 pp = GetPixelInViewSpace(pixel_x, pixel_y, PIXEL_W, PIXEL_H, l, r, t, b, n, f);
@@ -764,8 +770,9 @@ int main()
 //        const std::string MODEL_PATH = "objs/ACCobra/Shelby.obj";
 //    const std::string MODEL_PATH = "objs/sphere/sphere.obj";
     const std::string MODEL_PATH = "objs/cornell2/cornell-box.obj";
+//    const std::string MODEL_PATH = "objs/cornell_sub_test/cornell-box.obj";
 
-    obj_parse(MODEL_PATH.c_str(), &objs, .1f);
+    obj_parse(MODEL_PATH.c_str(), &objs, 1.f);
 
  //   tris = AssemblePrimitives(verts, n_verts);
 
