@@ -13,8 +13,8 @@
 #include "verts.h"
 #include "BVH.h"
 
-#define PIXEL_W 800
-#define PIXEL_H 800
+#define PIXEL_W 1920
+#define PIXEL_H 1080
 
 //SDL_Event event;
 //SDL_Window* window;
@@ -59,12 +59,9 @@ BVH_node g_BVH;
 float pixelBuffer[PIXEL_W * PIXEL_H * 3];
 
 glm::vec3 eye = glm::vec3(0.f, 2.5f, 3.0f);
-float l = -1.f;
-float r = 1.f;
-float t = 1.f;
-float b = -1.f;
-float n = 1.f;
-float f = 10.f;
+
+float vfov = glm::radians(60.f);
+float aspect = (float)PIXEL_W / (float)PIXEL_H;
 
 glm::vec3 light_pos(4.f, 6.f, 4.f);
 
@@ -227,7 +224,7 @@ bool PointInTriangle(glm::vec3 pt, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
     glm::vec3 V3p = pt - v3;
     glm::vec3 C31 = cross(V31, V3p);
     glm::vec3 C32 = cross(V31, V32);
-    float d3 = dot(C31, C22);
+    float d3 = dot(C31, C32);
 
     if (d1 > 0 && d2 > 0 && d3 > 0)
         return true;
@@ -388,7 +385,7 @@ void RayTrianglesIntersection(glm::vec3 o, glm::vec3 dir, float& t, glm::vec3 &i
         glm::vec3 p = glm::vec3(0);
         float current_t = RayTriangleIntersection(o, dir, tri, p);
 
-        if (current_t > 0 && current_t < f)
+        if (current_t > 0)//  && current_t < f)
         {
             if (current_t < closest_t)
             {
@@ -421,6 +418,13 @@ void RayTrianglesIntersection(glm::vec3 o, glm::vec3 dir, float& t, glm::vec3 &i
     return;
 }
 
+vec3 GetRayDirection(float px, float py, int W, int H, float aspect_ratio, float fov)
+{
+    vec3 X = aspect_ratio * fov * ((2 * (px + .5f)) / W - 1) * vec3(1, 0, 0);
+    vec3 Y = fov * ((2 * (py + .5f)) / H - 1) * vec3(0, 1, 0);
+    vec3 Z = vec3(0, 0, 1);
+    return X + Y + Z;
+}
 
 void RayTraceTriangles()
 {
@@ -433,7 +437,8 @@ void RayTraceTriangles()
         for (int pixel_x = 0; pixel_x < PIXEL_W; ++pixel_x)
         {
 
-            glm::vec3 pp = GetPixelInViewSpace(pixel_x, pixel_y, PIXEL_W, PIXEL_H, l, r, t, b, n, f);
+//            glm::vec3 pp = GetPixelInViewSpace(pixel_x, pixel_y, PIXEL_W, PIXEL_H, l, r, t, b, n, f);
+            glm::vec3 pp = GetRayDirection(pixel_x, pixel_y, PIXEL_W, PIXEL_H, aspect, vfov);
             glm::vec3 dir = normalize(pp);
             dir.y = -dir.y;
             dir.z = -dir.z;
@@ -708,7 +713,8 @@ void RayTraceBVH()
 
         for (int pixel_x = 0; pixel_x < PIXEL_W; ++pixel_x)
         {
-            glm::vec3 pp = GetPixelInViewSpace(pixel_x, pixel_y, PIXEL_W, PIXEL_H, l, r, t, b, n, f);
+            glm::vec3 pp = GetRayDirection(pixel_x, pixel_y, PIXEL_W, PIXEL_H, aspect, vfov);
+//            glm::vec3 pp = GetPixelInViewSpace(pixel_x, pixel_y, PIXEL_W, PIXEL_H, l, r, t, b, n, f);
             glm::vec3 dir = normalize(pp);
             dir.y = -dir.y;
             dir.z = -dir.z;
