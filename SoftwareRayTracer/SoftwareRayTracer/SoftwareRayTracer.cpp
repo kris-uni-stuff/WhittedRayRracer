@@ -45,7 +45,7 @@ glm::vec3 bkgd = glm::vec3(.6f, .6f, .6f);
 
 const float atten = 1.f;
 
-int max_recursion_depth = 1;
+int max_recursion_depth = 3;
 
 const int use_bvh = 1;
 
@@ -65,6 +65,27 @@ float aspect = (float)PIXEL_W / (float)PIXEL_H;
 
 glm::vec3 light_pos(4.f, 6.f, 4.f);
 
+
+void writeCol(vec3 col, int pixel_x, int pixel_y)
+{
+    auto r = linear_to_gamma(col.x);
+    auto g = linear_to_gamma(col.y);
+    auto b = linear_to_gamma(col.z);
+
+
+    float rc = std::clamp(r, .0f, 1.f);
+    float gc = std::clamp(g, .0f, 1.f);
+    float bc = std::clamp(b, .0f, 1.f);
+
+    float pixel_r = rc * 255.f;
+    float pixel_g = gc * 255.f;
+    float pixel_b = bc * 255.f;
+
+    pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 0] = pixel_r;
+    pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 1] = pixel_g;
+    pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 2] = pixel_b;
+
+}
 
 void AppendTriangles(std::vector<triangle>* io, vector<Object> in_objs)
 {
@@ -143,65 +164,6 @@ glm::vec3 GetPixelInViewSpace(int pixel_x, int pixel_y, int W, int H, float l, f
 
     return pvs;
 }
-/*
-bool ComputeBarycentricCoordinates(float x_ndc, float y_ndc, triangle& t, float& alpha, float& beta, float& gamma)
-{
-    float bc_edge = (t.v2.pos.y - t.v1.pos.y) * x_ndc + (t.v1.pos.x - t.v2.pos.x) * y_ndc + (t.v2.pos.x * t.v1.pos.y) - (t.v1.pos.x * t.v2.pos.y);
-    float bc_point = (t.v2.pos.y - t.v1.pos.y) * t.v3.pos.x + (t.v1.pos.x - t.v2.pos.x) * t.v3.pos.y + (t.v2.pos.x * t.v1.pos.y) - (t.v1.pos.x * t.v2.pos.y);
-    alpha = bc_edge / bc_point;
-
-    float ac_edge = (t.v3.pos.y - t.v1.pos.y) * x_ndc + (t.v1.pos.x - t.v3.pos.x) * y_ndc + (t.v3.pos.x * t.v1.pos.y) - (t.v1.pos.x * t.v3.pos.y);
-    float ac_point = (t.v3.pos.y - t.v1.pos.y) * t.v2.pos.x + (t.v1.pos.x - t.v3.pos.x) * t.v2.pos.y + (t.v3.pos.x * t.v1.pos.y) - (t.v1.pos.x * t.v3.pos.y);
-    beta = ac_edge / ac_point;
-
-    float ab_edge = (t.v3.pos.y - t.v2.pos.y) * x_ndc + (t.v2.pos.x - t.v3.pos.x) * y_ndc + (t.v3.pos.x * t.v2.pos.y) - (t.v2.pos.x * t.v3.pos.y);
-    float ab_point = (t.v3.pos.y - t.v2.pos.y) * t.v1.pos.x + (t.v2.pos.x - t.v3.pos.x) * t.v1.pos.y + (t.v3.pos.x * t.v2.pos.y) - (t.v2.pos.x * t.v3.pos.y);
-    gamma = ab_edge / ab_point;
-
-    if (alpha > 0.f && alpha < 1.f &&
-        beta > 0.f && beta < 1.f &&
-        gamma > 0.f && gamma < 1.f)
-    {
-        return true;
-    }
-
-    return false;
-}
-*/
-/*
-float sign(vec3 p1, vec3 p2, vec3 p3)
-{
-    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-}
-
-bool PointInTriangle(vec3 pt, vec3 v1, vec3 v2, vec3 v3)
-{
-    float d1, d2, d3;
-    bool has_neg, has_pos;
-
-    d1 = sign(pt, v1, v2);
-    d2 = sign(pt, v2, v3);
-    d3 = sign(pt, v3, v1);
-
-    has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-    has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-
-    return !(has_neg && has_pos);
-}
-*/
-/*
-bool PointInTriangle(vec3 pt, vec3 v1, vec3 v2, vec3 v3)
-{
-    float edge1 = (v2.y - v1.y) * pt.x + (v1.x - v2.x) * pt.y + (v2.x * v1.y) - (v1.x * v2.y);
-    float edge2 = (v3.y - v2.y) * pt.x + (v2.x - v3.x) * pt.y + (v3.x * v2.y) - (v2.x * v3.y);
-    float edge3 = (v1.y - v3.y) * pt.x + (v3.x - v1.x) * pt.y + (v1.x * v3.y) - (v3.x * v1.y);
-
-    if (edge1 < 0.f && edge2 < 0.f && edge3 < 0.f)
-        return true;
-
-    return false;
-}
-*/
 
 bool PointInTriangle(glm::vec3 pt, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
 {
@@ -270,8 +232,8 @@ float RayTriangleIntersection(glm::vec3 o, glm::vec3 dir, triangle *tri, glm::ve
 
 
 
-void RayTrianglesIntersection(glm::vec3 o, glm::vec3 dir, float& t, glm::vec3& io_col, int depth, triangle* from_tri, closest_hit p_hit);
-void RayBVHIntersection(glm::vec3 o, glm::vec3 dir, BVH_node* inBVH, float& t, glm::vec3& ioCol, int depth, triangle* from_tri, closest_hit p_hit);
+void trace(glm::vec3 o, glm::vec3 dir, float& t, glm::vec3& io_col, int depth, triangle* from_tri, closest_hit p_hit);
+void traceBVH(glm::vec3 o, glm::vec3 dir, BVH_node* inBVH, float& t, glm::vec3& ioCol, int depth, triangle* from_tri, closest_hit p_hit);
 
 
 
@@ -303,6 +265,10 @@ glm::vec3 CalculateColourWhitted(triangle *tri, int depth, glm::vec3 p, glm::vec
     if (tri->primID == 8 || tri->primID == 9)
         tri->reflect = true;
 
+    //small box
+    if (tri->primID >= 12 && tri->primID <= 21);
+        //tri->refract = true;
+
 
     glm::vec3 amb(0.f), diff(0.f);
 
@@ -313,9 +279,9 @@ glm::vec3 CalculateColourWhitted(triangle *tri, int depth, glm::vec3 p, glm::vec
     glm::vec3 dummy;
     glm::vec3 lightDir = glm::normalize(light_pos - p);
     if (use_bvh)
-        RayBVHIntersection(p, lightDir, &g_BVH, t, dummy, 0, tri, DoNothing);
+        traceBVH(p, lightDir, &g_BVH, t, dummy, 0, tri, DoNothing);
     else
-        RayTrianglesIntersection(p, lightDir, t, dummy, 0, tri, DoNothing);
+        trace(p, lightDir, t, dummy, 0, tri, DoNothing);
     if (t < 0)
     {
         diff = Diffuse(tri->v1.col, lightDir, tri->v1.nor);
@@ -323,13 +289,14 @@ glm::vec3 CalculateColourWhitted(triangle *tri, int depth, glm::vec3 p, glm::vec
     
 
     //reflection
-    if (tri->reflect && depth < max_recursion_depth)
+    if (tri->reflect  && depth < max_recursion_depth)
     {
         glm::vec3 refl = glm::reflect(dir, tri->v1.nor);
+
         if(use_bvh)
-           RayBVHIntersection(p, refl, &g_BVH, t, refl_col, depth + 1, tri, CalculateColour);
+           traceBVH(p, refl, &g_BVH, t, refl_col, depth + 1, tri, CalculateColour);
         else
-           RayTrianglesIntersection(p, refl, t, refl_col, depth + 1, tri, CalculateColour);
+           trace(p, refl, t, refl_col, depth + 1, tri, CalculateColour);
     }
 
     glm::vec3 ret = amb + diff + (refl_col * atten);
@@ -351,26 +318,9 @@ glm::vec3 CalculateColourFlat(triangle* tri, int depth, glm::vec3 p, glm::vec3 d
 }
 
 
-/*
-glm::vec3 CalculateColourBVH(triangle* tri, int depth, glm::vec3 p, glm::vec3 dir)
-{
-    glm::vec3 refl_col(0.f);
-    float t;
-
-    if (tri->reflect && depth < max_recursion_depth)
-    {
-        glm::vec3 refl = glm::reflect(dir, tri->v1.nor);
-        RayBVHIntersection(p, refl, &g_BVH, t, refl_col, depth + 1, tri);
-    }
-
-    glm::vec3 ret = tri->v1.col + (refl_col * atten);
-
-    return ret;
-}
-*/
 
 
-void RayTrianglesIntersection(glm::vec3 o, glm::vec3 dir, float& t, glm::vec3 &io_col, int depth, triangle *from_tri, closest_hit p_hit)
+void trace(glm::vec3 o, glm::vec3 dir, float& t, glm::vec3 &io_col, int depth, triangle *from_tri, closest_hit p_hit)
 {
     float closest_t = FLT_MAX;
     int closest_tc = -1;
@@ -398,16 +348,6 @@ void RayTrianglesIntersection(glm::vec3 o, glm::vec3 dir, float& t, glm::vec3 &i
 
     if (closest_tc >= 0)
     {
-        /*
-        glm::vec3 refl_col(0.f);
-        triangle *closest_tri = &tris[closest_tc];
-        if (closest_tri->reflect && depth < max_recursion_depth)
-        {
-            glm::vec3 refl = reflect(dir, closest_tri->v1.nor);
-            RayTrianglesIntersection(closest_p, refl, t, refl_col, depth + 1, closest_tri);
-        }
-        io_col = closest_tri->v1.col + (refl_col * atten);
-        */
         t = closest_t;
         triangle* closest_tri = &tris[closest_tc];
         io_col = p_hit(closest_tri, depth, closest_p, dir);
@@ -426,6 +366,41 @@ vec3 GetRayDirection(float px, float py, int W, int H, float aspect_ratio, float
     return X + Y + Z;
 }
 
+
+void rayTraceImage()
+{
+    for (int pixel_y = 0; pixel_y < PIXEL_H; ++pixel_y)
+    {
+        float percf = (float)pixel_y / (float)PIXEL_H;
+        int perci = percf * 100;
+        std::clog << "\rScanlines done: " << perci << "%" << ' ' << std::flush;
+
+        for (int pixel_x = 0; pixel_x < PIXEL_W; ++pixel_x)
+        {
+            glm::vec3 pp = GetRayDirection(pixel_x, pixel_y, PIXEL_W, PIXEL_H, aspect, vfov);
+            glm::vec3 dir = normalize(pp);
+            dir.y = -dir.y;
+            dir.z = -dir.z;
+
+            float t = -1;
+            glm::vec3 col(0.f);
+
+            if (use_bvh)
+            {
+                traceBVH(eye, dir, &g_BVH, t, col, 0, NULL, CalculateColour);
+            }
+            else
+            {
+                trace(eye, dir, t, col, 0, NULL, CalculateColour);
+            }
+
+            writeCol(col, pixel_x, pixel_y);
+        }
+    }
+    std::clog << "\rFinish rendering.           \n";
+
+}
+/*
 void RayTraceTriangles()
 {
     for (int pixel_y = 0; pixel_y < PIXEL_H; ++pixel_y)
@@ -436,8 +411,6 @@ void RayTraceTriangles()
 
         for (int pixel_x = 0; pixel_x < PIXEL_W; ++pixel_x)
         {
-
-//            glm::vec3 pp = GetPixelInViewSpace(pixel_x, pixel_y, PIXEL_W, PIXEL_H, l, r, t, b, n, f);
             glm::vec3 pp = GetRayDirection(pixel_x, pixel_y, PIXEL_W, PIXEL_H, aspect, vfov);
             glm::vec3 dir = normalize(pp);
             dir.y = -dir.y;
@@ -445,38 +418,16 @@ void RayTraceTriangles()
 
             float t = 0;
             glm::vec3 col(0.f);            
-            RayTrianglesIntersection(eye, dir, t, col, 0, NULL, CalculateColour);
+            trace(eye, dir, t, col, 0, NULL, CalculateColour);
+            writeCol(col, pixel_x, pixel_y);
 
-//            if (t > 0 && t < f)
-            {
-                auto r = linear_to_gamma(col.x);
-                auto g = linear_to_gamma(col.y);
-                auto b = linear_to_gamma(col.z);
-
-
-                float rc = std::clamp(r, .0f, 1.f);
-                float gc = std::clamp(g, .0f, 1.f);
-                float bc = std::clamp(b, .0f, 1.f);
-
-                float pixel_r = rc * 255.f;
-                float pixel_g = gc * 255.f;
-                float pixel_b = bc * 255.f;
-
-
-                pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 0] = pixel_r;
-                pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 1] = pixel_g;
-                pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 2] = pixel_b;
-
-//                SDL_SetRenderDrawColor(renderer, pixel_r, pixel_g, pixel_b, 255);
-//                SDL_RenderDrawPoint(renderer, pixel_x, pixel_y);
-            }
         }
     }
 
     std::clog << "\rFinish rendering.           \n";
 
 }
-
+*/
 void swap(float& l, float& r)
 {
     float t = l;
@@ -530,7 +481,7 @@ bool RayAABBIntersection(glm::vec3 o, glm::vec3 dir, AABB* bb)
 }
 
 
-void RayBVHIntersection(glm::vec3 o, glm::vec3 dir, BVH_node* inBVH, float &io_t, glm::vec3 &ioCol, int depth, triangle* from_tri, closest_hit p_hit)
+void traceBVH(glm::vec3 o, glm::vec3 dir, BVH_node* inBVH, float &io_t, glm::vec3 &ioCol, int depth, triangle* from_tri, closest_hit p_hit)
 {
     glm::vec3 refl_col(0.f);
 
@@ -576,57 +527,6 @@ void RayBVHIntersection(glm::vec3 o, glm::vec3 dir, BVH_node* inBVH, float &io_t
         return;
     }
 
-/*    if (inBVH->l_bvh == NULL && inBVH->r_bvh == NULL)
-    {
-        glm::vec3 pl = glm::vec3(0); 
-        glm::vec3 pr = glm::vec3(0);
-        float tl = -1;
-        if (from_tri == NULL || &inBVH->l_tri != from_tri)
-        {
-            tl = RayTriangleIntersection(o, dir, &inBVH->l_tri, pl);
-        }
-        float tr = -1;
-        if (from_tri == NULL || &inBVH->r_tri != from_tri)
-        {
-            tr = RayTriangleIntersection(o, dir, &inBVH->r_tri, pr);
-        }
-
-        if (tl < 0 && tr < 0)
-        {
-            ioCol = bkgd;
-            return;
-        }
-        else if (tl >= 0 && tr < 0)
-        {
-            t = tl;
-            ioCol = p_hit(&inBVH->l_tri, depth, pl, dir);
-            return;
-        }
-        else if (tl < 0 && tr >= 0)
-        {
-            t = tr;
-            ioCol = p_hit(&inBVH->r_tri, depth, pr, dir);
-            return;
-        }
-        else
-        {
-            if (tl < tr)
-            {
-                t = tl;
-                ioCol = p_hit(&inBVH->l_tri, depth, pl, dir);
-                return;
-            }
-            else
-            {
-                t = tr;
-                ioCol = p_hit(&inBVH->r_tri, depth, pr, dir);
-                return;
-            }
-        }
-        ioCol = bkgd;
-        return;
-    }
-    */
 
 
     float t = FLT_MAX;
@@ -635,7 +535,7 @@ void RayBVHIntersection(glm::vec3 o, glm::vec3 dir, BVH_node* inBVH, float &io_t
     glm::vec3 closest_col(0.f);
     for (auto bvh : inBVH->child_bvhs)
     {
-        RayBVHIntersection(o, dir, bvh, t, col, depth, from_tri, p_hit);
+        traceBVH(o, dir, bvh, t, col, depth, from_tri, p_hit);
         if (t < closest_t)
         {
             closest_t = t;
@@ -654,104 +554,10 @@ void RayBVHIntersection(glm::vec3 o, glm::vec3 dir, BVH_node* inBVH, float &io_t
     return;
 
 
-/*    float tl = -1;
-    glm::vec3 l_col(0.f);
-    RayBVHIntersection(o, dir, inBVH->l_bvh, tl, l_col, depth, from_tri, CalculateColour);
-    float tr = -1;
-    glm::vec3 r_col(0.f);
-    RayBVHIntersection(o, dir, inBVH->r_bvh, tr, r_col, depth, from_tri, CalculateColour);
-    if (tl < 0 && tr < 0)
-    {
-        ioCol = bkgd;
-        return;
-    }
-    else if (tl >= 0 && tr < 0)
-    {
-        t = tl;
-        ioCol = l_col;
-        return;
-    }
-    else if (tl < 0 && tr >= 0)
-    {
-        t = tr;
-        ioCol = r_col;
-        return;
-    }
-    else
-    {
-        if (tl < tr)
-        {
-            t = tl;
-            ioCol = l_col;
-            return;
-        }
-        else
-        {
-            t = tr;
-            ioCol = r_col;
-            return;
-        }
-    }
-
-    */
     ioCol = bkgd;
     return;
 }
 
-void RayTraceBVH()
-{
-    for (int pixel_y = 0; pixel_y < PIXEL_H; ++pixel_y)
-    {
-        float percf = (float)pixel_y / (float)PIXEL_H;
-        int perci = percf * 100;
-        std::clog << "\rScanlines done: " << perci << "%" << ' ' << std::flush;
-
-        if (pixel_y == 47)
-        {
-            int t = 0;
-        }
-
-        for (int pixel_x = 0; pixel_x < PIXEL_W; ++pixel_x)
-        {
-            glm::vec3 pp = GetRayDirection(pixel_x, pixel_y, PIXEL_W, PIXEL_H, aspect, vfov);
-//            glm::vec3 pp = GetPixelInViewSpace(pixel_x, pixel_y, PIXEL_W, PIXEL_H, l, r, t, b, n, f);
-            glm::vec3 dir = normalize(pp);
-            dir.y = -dir.y;
-            dir.z = -dir.z;
-
-            float t = -1;
-            glm::vec3 col(0.f);
-            RayBVHIntersection(eye, dir, &g_BVH, t, col, 0, NULL, CalculateColour);
-
-//            if (tri != NULL)
-            {
-                auto r = linear_to_gamma(col.x);
-                auto g = linear_to_gamma(col.y);
-                auto b = linear_to_gamma(col.z);
-
-
-                float rc = std::clamp(r, .0f, 1.f);
-                float gc = std::clamp(g, .0f, 1.f);
-                float bc = std::clamp(b, .0f, 1.f);
-
-                float pixel_r = rc * 255.f;
-                float pixel_g = gc * 255.f;
-                float pixel_b = bc * 255.f;
-
-                //SDL_SetRenderDrawColor(renderer, pixel_r, pixel_g, pixel_b, 255);
-                //SDL_RenderDrawPoint(renderer, pixel_x, pixel_y);
-                pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 0] = pixel_r;
-                pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 1] = pixel_g;
-                pixelBuffer[(pixel_y * PIXEL_W * 3) + (pixel_x * 3) + 2] = pixel_b;
-
-            }
-
-            //printf("%f\n", float(pixel_y * PIXEL_W + pixel_x) / float(PIXEL_H * PIXEL_W));
-        }
-    }
-    std::clog << "\rFinish rendering.           \n";
-
-}
 
 
 void CounterEndAndPrint(LARGE_INTEGER StartingTime, LARGE_INTEGER *EndingTime, LARGE_INTEGER Frequency)
@@ -770,19 +576,12 @@ int main()
     LARGE_INTEGER Frequency;
     QueryPerformanceFrequency(&Frequency);
 
-//    const std::string MODEL_PATH = "objs/white_oak/white_oak.obj";
-//    const std::string MODEL_PATH = "objs/bird/textured_quad.obj";
- //   const std::string MODEL_PATH = "objs/room/viking_room.obj";
-//        const std::string MODEL_PATH = "objs/ACCobra/Shelby.obj";
-//    const std::string MODEL_PATH = "objs/sphere/sphere.obj";
+
     const std::string MODEL_PATH = "objs/cornell2/cornell-box.obj";
-//    const std::string MODEL_PATH = "objs/cornell_sub_test/cornell-box.obj";
-
     obj_parse(MODEL_PATH.c_str(), &objs, 1.f);
-
  //   tris = AssemblePrimitives(verts, n_verts);
-
     AppendTriangles(&tris, objs);
+
 
     LARGE_INTEGER Construct_StartingTime, Construct_EndingTime;
     QueryPerformanceCounter(&Construct_StartingTime);
@@ -795,19 +594,15 @@ int main()
     CounterEndAndPrint(Construct_StartingTime, &Construct_EndingTime, Frequency);
 
 
+
     LARGE_INTEGER Render_StartingTime, Render_EndingTime;
     QueryPerformanceCounter(&Render_StartingTime);
 
-    if (use_bvh)
-    {
-        RayTraceBVH();
-    }
-    else
-    {
-        RayTraceTriangles();
-    }
+    rayTraceImage();
 
     CounterEndAndPrint(Render_StartingTime, &Render_EndingTime, Frequency);
+
+
 
     savebitmap("render.bmp", pixelBuffer, PIXEL_W, PIXEL_H);
 
