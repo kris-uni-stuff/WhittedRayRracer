@@ -45,7 +45,7 @@ glm::vec3 bkgd = glm::vec3(.6f, .6f, .6f);
 
 const float atten = 1.f;
 
-int max_recursion_depth = 3;
+int max_recursion_depth = 1;
 
 const int use_bvh = 1;
 
