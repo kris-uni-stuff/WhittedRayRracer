@@ -47,7 +47,7 @@ const float atten = 1.f;
 
 int max_recursion_depth = 1;
 
-const int use_bvh = 1;
+const int use_bvh = 0;
 
 closest_hit CalculateColour = CalculateColourWhitted;
 
